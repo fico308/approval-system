@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>周末计划申请与审批系统</title>
+    <!-- 引入Element UI样式 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/element-ui/2.15.13/theme-chalk/index.min.css">
+    <!-- 引入highlight.js样式 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
+    <!-- 引入Vue -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.7.14/vue.min.js"></script>
+    <!-- 引入Element UI组件库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/element-ui/2.15.13/index.min.js"></script>
+    <!-- 引入axios用于HTTP请求 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.0/axios.min.js"></script>
+    <!-- 引入highlight.js用于代码高亮 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <!-- 引入marked用于Markdown渲染 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .plan-form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .plan-history {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        }
+        .admin-panel {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        }
+        .plan-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .approval-success {
+            color: #67C23A;
+            font-weight: bold;
+        }
+        .approval-failed {
+            color: #F56C6C;
+            font-weight: bold;
+        }
+        .login-form {
+            width: 350px;
+            margin: 100px auto;
+        }
+        .buttons-bar {
+            margin-top: 20px;
+        }
+        .plan-card {
+            height: 100%;
+        }
+        .plan-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .plan-card-content {
+            color: #666;
+        }
+        .markdown-content {
+            padding: 10px;
+            line-height: 1.6;
+        }
+        .markdown-content h1,
+        .markdown-content h2,
+        .markdown-content h3,
+        .markdown-content h4,
+        .markdown-content h5,
+        .markdown-content h6 {
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+            font-weight: 600;
+        }
+        .markdown-content p {
+            margin: 0.5em 0;
+        }
+        .markdown-content ul,
+        .markdown-content ol {
+            padding-left: 2em;
+            margin: 0.5em 0;
+        }
+        .markdown-content code {
+            background-color: #f5f7fa;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .markdown-content pre {
+            background-color: #f5f7fa;
+            padding: 1em;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .markdown-content pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .markdown-content blockquote {
+            border-left: 4px solid #dcdfe6;
+            margin: 0.5em 0;
+            padding: 0.5em 1em;
+            color: #606266;
+        }
+        .markdown-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 0.5em 0;
+        }
+        .markdown-content th,
+        .markdown-content td {
+            border: 1px solid #dcdfe6;
+            padding: 0.5em;
+        }
+        .markdown-content th {
+            background-color: #f5f7fa;
+        }
+        .markdown-content img {
+            max-width: 100%;
+            height: auto;
+        }
+        .markdown-content a {
+            color: #409eff;
+            text-decoration: none;
+        }
+        .markdown-content a:hover {
+            text-decoration: underline;
+        }
+        .preview-toggle {
+            position: absolute;
+            right: 0;
+            top: -30px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="header">
+                <el-page-header v-if="currentView === 'admin'" @back="goBack" content="管理员审批系统"></el-page-header>
+                <h1 style="margin-top: 20px;">{{currentView === 'admin' ? '管理员审批系统' : '周末计划申请系统'}}</h1>
+            </div>
+            
+            <!-- 切换视图按钮 -->
+            <div style="text-align: right; margin-bottom: 20px;">
+                <el-button type="primary" @click="showLoginDialog" v-if="currentView !== 'admin'">管理员入口</el-button>
+                <el-button type="info" @click="currentView = 'user'" v-else>返回用户界面</el-button>
+                <el-button type="success" @click="refreshData" icon="el-icon-refresh">刷新数据</el-button>
+            </div>
+            
+            <!-- 用户视图 -->
+            <div v-if="currentView === 'user'">
+                <el-tabs v-model="activeTab">
+                    <el-tab-pane label="提交计划" name="submit">
+                        <div class="plan-form">
+                            <h3>周末计划申请</h3>
+                            <el-alert
+                                v-if="isAfterThursday"
+                                title="已过周四，本周申请已截止"
+                                type="warning"
+                                :closable="false">
+                            </el-alert>
+                            <el-form :model="newPlan" :rules="rules" ref="planForm" label-width="100px" style="margin-top: 20px;">
+                                <el-form-item label="申请日期">
+                                    <el-date-picker
+                                        v-model="newPlan.submitDate"
+                                        type="date"
+                                        placeholder="选择申请日期"
+                                        :disabled="true"
+                                        format="yyyy-MM-dd"
+                                        value-format="yyyy-MM-dd">
+                                    </el-date-picker>
+                                </el-form-item>
+                                <el-form-item label="计划日期" prop="planDate">
+                                    <el-date-picker
+                                        v-model="newPlan.planDate"
+                                        type="date"
+                                        placeholder="选择计划日期"
+                                        :picker-options="weekendOnly"
+                                        format="yyyy-MM-dd"
+                                        value-format="yyyy-MM-dd">
+                                    </el-date-picker>
+                                </el-form-item>
+                                <el-form-item label="详细描述" prop="description">
+                                    <div class="markdown-editor">
+                                        <div class="markdown-input" :style="{ width: showPreview ? '50%' : '100%' }">
+                                            <el-input
+                                                type="textarea"
+                                                v-model="newPlan.description"
+                                                rows="8"
+                                                placeholder="请使用Markdown格式详细描述您的周末计划">
+                                            </el-input>
+                                        </div>
+                                        <div class="markdown-preview" v-show="showPreview" :style="{ width: '50%' }" v-html="renderMarkdown(newPlan.description)"></div>
+                                        <el-button 
+                                            type="primary" 
+                                            size="small" 
+                                            icon="el-icon-view" 
+                                            @click="showPreview = !showPreview"
+                                            class="preview-toggle">
+                                            {{ showPreview ? '隐藏预览' : '预览' }}
+                                        </el-button>
+                                    </div>
+                                </el-form-item>
+                                <el-form-item label="备选方案">
+                                    <div class="markdown-editor">
+                                        <div class="markdown-input" :style="{ width: showAlternativePreview ? '50%' : '100%' }">
+                                            <el-input
+                                                type="textarea"
+                                                v-model="newPlan.alternative"
+                                                rows="6"
+                                                placeholder="请使用Markdown格式提供备选方案（可选）">
+                                            </el-input>
+                                        </div>
+                                        <div class="markdown-preview" v-show="showAlternativePreview" :style="{ width: '50%' }" v-html="renderMarkdown(newPlan.alternative)"></div>
+                                        <el-button 
+                                            type="primary" 
+                                            size="small" 
+                                            icon="el-icon-view" 
+                                            @click="showAlternativePreview = !showAlternativePreview"
+                                            class="preview-toggle">
+                                            {{ showAlternativePreview ? '隐藏预览' : '预览' }}
+                                        </el-button>
+                                    </div>
+                                </el-form-item>
+                                <el-form-item label="验证码" prop="totpToken">
+                                    <el-input
+                                        v-model="newPlan.totpToken"
+                                        placeholder="请输入 Google Authenticator 验证码"
+                                        maxlength="6"
+                                        show-word-limit>
+                                    </el-input>
+                                </el-form-item>
+                                <el-form-item>
+                                    <el-button type="primary" @click="submitPlan" :disabled="false">提交申请</el-button>
+                                    <el-button @click="resetForm">重置</el-button>
+                                </el-form-item>
+                            </el-form>
+                        </div>
+                    </el-tab-pane>
+                    <el-tab-pane label="申请历史" name="history">
+                        <div class="plan-history">
+                            <h3>申请历史记录</h3>
+                            <div v-if="plans.length === 0" style="text-align: center; margin-top: 20px;">
+                                <el-empty description="暂无申请记录"></el-empty>
+                            </div>
+                            <el-row :gutter="20" v-else>
+                                <el-col :span="24" v-for="plan in plans" :key="plan.id" style="margin-bottom: 20px;">
+                                    <el-card shadow="hover" class="plan-card">
+                                        <div slot="header" class="plan-card-header">
+                                            <span>{{ formatLocalDate(plan.planDate) }}</span>
+                                            <el-tag :type="getStatusType(plan.status)" size="small">
+                                                {{ getStatusText(plan.status, plan) }}
+                                            </el-tag>
+                                        </div>
+                                        <div class="plan-card-content">
+                                            <div class="markdown-content" v-html="renderMarkdown(plan.description)"></div>
+                                            <div v-if="plan.alternative" class="markdown-content alternative">
+                                                <div class="label">备选方案：</div>
+                                                <div v-html="renderMarkdown(plan.alternative)"></div>
+                                            </div>
+                                            <div v-if="plan.feedback" class="feedback">
+                                                <div class="label">审批意见：</div>
+                                                <div>{{ plan.feedback }}</div>
+                                            </div>
+                                        </div>
+                                    </el-card>
+                                </el-col>
+                            </el-row>
+                        </div>
+                    </el-tab-pane>
+                    <el-tab-pane label="本周计划" name="currentWeek">
+                        <div class="plan-history">
+                            <h3>本周已通过的计划</h3>
+                            <div v-if="currentWeekApprovedPlans.length === 0" style="text-align: center; margin-top: 20px;">
+                                <el-empty description="本周暂无已通过的计划"></el-empty>
+                            </div>
+                            <el-row :gutter="20" v-else>
+                                <el-col :span="24" v-for="plan in currentWeekApprovedPlans" :key="plan.id" style="margin-bottom: 20px;">
+                                    <el-card shadow="hover" class="plan-card">
+                                        <div slot="header" class="plan-card-header">
+                                            <span>{{ formatLocalDate(plan.planDate) }}</span>
+                                            <el-tag type="success" size="small">已通过</el-tag>
+                                        </div>
+                                        <div class="plan-card-content">
+                                            <div class="markdown-content" v-html="renderMarkdown(plan.description)"></div>
+                                            <div v-if="plan.alternative" class="markdown-content alternative">
+                                                <div class="label">备选方案：</div>
+                                                <div v-html="renderMarkdown(plan.alternative)"></div>
+                                            </div>
+                                            <div v-if="plan.feedback" class="feedback">
+                                                <div class="label">审批意见：</div>
+                                                <div>{{ plan.feedback }}</div>
+                                            </div>
+                                        </div>
+                                    </el-card>
+                                </el-col>
+                            </el-row>
+                        </div>
+                    </el-tab-pane>
+                    <el-tab-pane label="月度时间线" name="timeline">
+                        <div class="plan-history">
+                            <h3>本月申请记录</h3>
+                            <div v-if="monthlyPlans.length === 0" style="text-align: center; margin-top: 20px;">
+                                <el-empty description="本月暂无申请记录"></el-empty>
+                            </div>
+                            <el-timeline v-else>
+                                <el-timeline-item
+                                    v-for="plan in monthlyPlans"
+                                    :key="plan.id"
+                                    :type="getTimelineItemType(plan)"
+                                    :color="getTimelineItemColor(plan)"
+                                    :timestamp="formatLocalDate(plan.planDate)"
+                                    placement="top">
+                                    <el-card shadow="hover" class="plan-card">
+                                        <div slot="header" class="plan-card-header">
+                                            <span>{{ formatLocalDate(plan.planDate) }}</span>
+                                            <el-tag :type="getStatusType(plan.status)" size="small">
+                                                {{ getStatusText(plan.status, plan) }}
+                                            </el-tag>
+                                        </div>
+                                        <div class="plan-card-content">
+                                            <div class="markdown-content" v-html="renderMarkdown(plan.description)"></div>
+                                            <div v-if="plan.alternative" class="markdown-content alternative">
+                                                <div class="label">备选方案：</div>
+                                                <div v-html="renderMarkdown(plan.alternative)"></div>
+                                            </div>
+                                            <div v-if="plan.feedback" class="feedback">
+                                                <div class="label">审批意见：</div>
+                                                <div>{{ plan.feedback }}</div>
+                                            </div>
+                                        </div>
+                                    </el-card>
+                                </el-timeline-item>
+                            </el-timeline>
+                        </div>
+                    </el-tab-pane>
+                </el-tabs>
+            </div>
+            
+            <!-- 管理员视图 -->
+            <div v-if="currentView === 'admin'">
+                <div class="admin-panel">
+                    <h3>待审批计划列表</h3>
+                    <div v-if="pendingPlans.length === 0" style="text-align: center; margin-top: 20px;">
+                        <el-empty description="暂无待审批计划"></el-empty>
+                    </div>
+                    <el-row :gutter="20" v-else>
+                        <el-col :span="24" v-for="plan in pendingPlans" :key="plan.id" style="margin-bottom: 20px;">
+                            <el-card shadow="hover" class="plan-card">
+                                <div slot="header" class="plan-card-header">
+                                    <span>{{ formatLocalDate(plan.planDate) }}</span>
+                                    <el-tag type="info" size="small">待审批</el-tag>
+                                </div>
+                                <div class="plan-card-content">
+                                    <div class="markdown-content" v-html="renderMarkdown(plan.description)"></div>
+                                    <div v-if="plan.alternative" class="markdown-content alternative">
+                                        <div class="label">备选方案：</div>
+                                        <div v-html="renderMarkdown(plan.alternative)"></div>
+                                    </div>
+                                    <div class="plan-actions" style="margin-top: 20px; text-align: right;">
+                                        <el-button
+                                            type="success"
+                                            size="small"
+                                            @click="approvePlan(plan)">通过</el-button>
+                                        <el-button
+                                            type="danger"
+                                            size="small"
+                                            @click="rejectPlan(plan)">拒绝</el-button>
+                                    </div>
+                                </div>
+                            </el-card>
+                        </el-col>
+                    </el-row>
+                </div>
+                
+                <div class="admin-panel" style="margin-top: 20px;">
+                    <h3>已审批计划列表</h3>
+                    <div v-if="reviewedPlans.length === 0" style="text-align: center; margin-top: 20px;">
+                        <el-empty description="暂无已审批计划"></el-empty>
+                    </div>
+                    <el-row :gutter="20" v-else>
+                        <el-col :span="24" v-for="plan in reviewedPlans" :key="plan.id" style="margin-bottom: 20px;">
+                            <el-card shadow="hover" class="plan-card">
+                                <div slot="header" class="plan-card-header">
+                                    <span>{{ formatLocalDate(plan.planDate) }}</span>
+                                    <el-tag :type="plan.status === 'approved' ? 'success' : 'danger'" size="small">
+                                        {{ plan.status === 'approved' ? '已通过' : '已拒绝' }}
+                                    </el-tag>
+                                </div>
+                                <div class="plan-card-content">
+                                    <div class="markdown-content" v-html="renderMarkdown(plan.description)"></div>
+                                    <div v-if="plan.alternative" class="markdown-content alternative">
+                                        <div class="label">备选方案：</div>
+                                        <div v-html="renderMarkdown(plan.alternative)"></div>
+                                    </div>
+                                    <div v-if="plan.feedback" class="feedback">
+                                        <div class="label">审批意见：</div>
+                                        <div>{{ plan.feedback }}</div>
+                                    </div>
+                                </div>
+                            </el-card>
+                        </el-col>
+                    </el-row>
+                </div>
+            </div>
+            
+            <!-- 管理员登录对话框 -->
+            <el-dialog
+                title="管理员登录"
+                :visible.sync="loginDialogVisible"
+                width="30%">
+                <div class="login-form">
+                    <el-form :model="loginForm" :rules="loginRules" ref="loginForm" label-width="80px">
+                        <el-form-item label="验证码" prop="totpToken">
+                            <el-input
+                                v-model="loginForm.totpToken"
+                                placeholder="请输入 Google Authenticator 验证码"
+                                maxlength="6"
+                                show-word-limit>
+                            </el-input>
+                        </el-form-item>
+                    </el-form>
+                </div>
+                <span slot="footer" class="dialog-footer">
+                    <el-button @click="loginDialogVisible = false">取消</el-button>
+                    <el-button type="primary" @click="login">登录</el-button>
+                </span>
+            </el-dialog>
+            
+            <!-- 查看计划详情对话框 -->
+            <el-dialog
+                title="计划详情"
+                :visible.sync="detailDialogVisible"
+                width="50%">
+                <div v-if="selectedPlan">
+                    <el-descriptions :column="1" border>
+                        <el-descriptions-item label="申请日期">{{ selectedPlan.submitDate }}</el-descriptions-item>
+                        <el-descriptions-item label="计划日期">{{ selectedPlan.planDate }}</el-descriptions-item>
+                        <el-descriptions-item label="时间段">{{ selectedPlan.startTime }} - {{ selectedPlan.endTime }}</el-descriptions-item>
+                        <el-descriptions-item label="详细描述">{{ selectedPlan.description }}</el-descriptions-item>
+                        <el-descriptions-item label="备选方案">{{ selectedPlan.alternative }}</el-descriptions-item>
+                        <el-descriptions-item label="状态">
+                            <el-tag :type="selectedPlan.status === 'approved' ? 'success' : selectedPlan.status === 'rejected' ? 'danger' : 'info'">
+                                {{ selectedPlan.status === 'approved' ? '已通过' : selectedPlan.status === 'rejected' ? '已拒绝' : '审核中' }}
+                            </el-tag>
+                        </el-descriptions-item>
+                        <el-descriptions-item v-if="selectedPlan.status !== 'pending'" :label="selectedPlan.status === 'approved' ? '审批意见' : '审批失败'">
+                            <span :class="selectedPlan.status === 'approved' ? 'approval-success' : 'approval-failed'">
+                                {{ selectedPlan.feedback }}
+                            </span>
+                        </el-descriptions-item>
+                    </el-descriptions>
+                </div>
+            </el-dialog>
+            
+            <!-- 审批对话框 -->
+            <el-dialog
+                :title="approvalAction === 'approve' ? '通过申请' : '拒绝申请'"
+                :visible.sync="approvalDialogVisible"
+                width="40%">
+                <el-form :model="approvalForm" :rules="approvalRules" ref="approvalForm" label-width="80px">
+                    <el-form-item :label="approvalAction === 'approve' ? '通过意见' : '拒绝原因'" prop="feedback">
+                        <el-input
+                            type="textarea"
+                            v-model="approvalForm.feedback"
+                            rows="4"
+                            :placeholder="approvalAction === 'approve' ? '请输入通过意见' : '请输入拒绝原因'">
+                        </el-input>
+                    </el-form-item>
+                    <el-form-item label="验证码" prop="totpToken">
+                        <el-input
+                            v-model="approvalForm.totpToken"
+                            placeholder="请输入 Google Authenticator 验证码"
+                            maxlength="6"
+                            show-word-limit>
+                        </el-input>
+                    </el-form-item>
+                </el-form>
+                <span slot="footer" class="dialog-footer">
+                    <el-button @click="approvalDialogVisible = false">取消</el-button>
+                    <el-button :type="approvalAction === 'approve' ? 'success' : 'danger'" @click="submitApproval">确认</el-button>
+                </span>
+            </el-dialog>
+        </div>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    currentView: 'user', // user 或 admin
+                    activeTab: 'submit',
+                    loading: false,
+                    isAfterThursday: false,
+                    plans: [], // 所有计划
+                    showPreview: false,
+                    showAlternativePreview: false,
+                    
+                    // 新计划表单
+                    newPlan: {
+                        id: null,
+                        submitDate: this.formatDate(new Date()),
+                        planDate: '',
+                        description: '',
+                        alternative: '',
+                        status: 'pending',
+                        feedback: '',
+                        totpToken: ''
+                    },
+                    
+                    // 表单规则
+                    rules: {
+                        planDate: [
+                            { required: true, message: '请选择计划日期', trigger: 'change' }
+                        ],
+                        description: [
+                            { required: true, message: '请输入详细描述', trigger: 'blur' }
+                        ]
+                    },
+                    
+                    // 周末选择器设置
+                    weekendOnly: {
+                        disabledDate(date) {
+                            const today = new Date();
+                            const isAfterThursday = today.getDay() >= 4 || today.getDay() === 0;
+                            
+                            // 如果是周四之后，只能选择下周的周末
+                            if (isAfterThursday) {
+                                const nextWeekStart = new Date(today);
+                                nextWeekStart.setDate(today.getDate() + (7 - today.getDay() + 1)); // 下周一
+                                const nextWeekEnd = new Date(nextWeekStart);
+                                nextWeekEnd.setDate(nextWeekStart.getDate() + 6); // 下周日
+                                
+                                return date < nextWeekStart || date > nextWeekEnd || (date.getDay() !== 0 && date.getDay() !== 6);
+                            }
+                            
+                            // 如果是周四之前，只能选择本周的周末
+                            const weekStart = new Date(today);
+                            weekStart.setDate(today.getDate() - today.getDay() + 1); // 本周一
+                            const weekEnd = new Date(weekStart);
+                            weekEnd.setDate(weekStart.getDate() + 6); // 本周日
+                            
+                            return date < weekStart || date > weekEnd || (date.getDay() !== 0 && date.getDay() !== 6);
+                        }
+                    },
+                    
+                    // 管理员登录
+                    loginDialogVisible: false,
+                    loginForm: {
+                        totpToken: ''
+                    },
+                    loginRules: {
+                        totpToken: [
+                            { required: true, message: '请输入验证码', trigger: 'blur' },
+                            { pattern: /^\d{6}$/, message: '验证码必须是6位数字', trigger: 'blur' }
+                        ]
+                    },
+                    
+                    // 计划详情
+                    detailDialogVisible: false,
+                    selectedPlan: null,
+                    
+                    // 审批
+                    approvalDialogVisible: false,
+                    approvalAction: 'approve', // approve 或 reject
+                    approvalPlan: null,
+                    approvalForm: {
+                        feedback: '',
+                        totpToken: ''
+                    },
+                    approvalRules: {
+                        feedback: [
+                            { required: true, message: '请输入审批意见', trigger: 'blur' }
+                        ],
+                        totpToken: [
+                            { required: true, message: '请输入验证码', trigger: 'blur' },
+                            { pattern: /^\d{6}$/, message: '验证码必须是6位数字', trigger: 'blur' }
+                        ]
+                    }
+                };
+            },
+            computed: {
+                // 待审批计划
+                pendingPlans() {
+                    return this.plans.filter(plan => plan.status === 'pending');
+                },
+                // 已审批计划
+                reviewedPlans() {
+                    return this.plans.filter(plan => plan.status !== 'pending');
+                },
+                // 本周已通过的计划
+                currentWeekApprovedPlans() {
+                    const today = new Date();
+                    const weekStart = new Date(today);
+                    weekStart.setDate(today.getDate() - today.getDay() + 1); // 本周一
+                    const weekEnd = new Date(weekStart);
+                    weekEnd.setDate(weekStart.getDate() + 6); // 本周日
+                    
+                    return this.plans.filter(plan => {
+                        const planDate = new Date(plan.planDate);
+                        return plan.status === 'approved' && 
+                               planDate >= weekStart && 
+                               planDate <= weekEnd;
+                    }).sort((a, b) => new Date(a.planDate) - new Date(b.planDate));
+                },
+                // 本月所有计划
+                monthlyPlans() {
+                    const today = new Date();
+                    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                    const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                    
+                    return this.plans.filter(plan => {
+                        const planDate = new Date(plan.planDate);
+                        return plan.status === 'approved' && 
+                               planDate >= monthStart && 
+                               planDate <= monthEnd;
+                    }).sort((a, b) => new Date(b.planDate) - new Date(a.planDate));
+                }
+            },
+            created() {
+                // 检查是否周四之后
+                this.checkIfAfterThursday();
+                
+                // 从服务器加载数据
+                this.fetchPlans();
+            },
+            methods: {
+                // 格式化日期为字符串
+                formatDate(date) {
+                    const year = date.getFullYear();
+                    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                    const day = date.getDate().toString().padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                },
+                
+                // 检查是否周四之后
+                checkIfAfterThursday() {
+                    const today = new Date();
+                    // 周四是4，周五是5，周六是6，周日是0
+                    this.isAfterThursday = today.getDay() >= 4 || today.getDay() === 0;
+                },
+                
+                // 渲染Markdown
+                renderMarkdown(text) {
+                    if (!text) return '';
+                    // 配置marked选项
+                    marked.setOptions({
+                        highlight: function(code, lang) {
+                            if (lang && hljs.getLanguage(lang)) {
+                                return hljs.highlight(code, { language: lang }).value;
+                            }
+                            return hljs.highlightAuto(code).value;
+                        },
+                        breaks: true,
+                        gfm: true
+                    });
+                    return marked.parse(text);
+                },
+                
+                // 从服务器获取所有计划
+                fetchPlans() {
+                    this.loading = true;
+                    
+                    // 使用真实API请求
+                    this.realApiRequest('/api/plans', 'GET')
+                        .then(response => {
+                            this.plans = response.data;
+                            this.loading = false;
+                        })
+                        .catch(error => {
+                            console.error('获取计划失败:', error);
+                            this.$message.error('获取计划失败，请刷新页面重试');
+                            this.loading = false;
+                        });
+                },
+                
+                // 保存计划到服务器
+                savePlanToServer(plan) {
+                    return this.realApiRequest('/api/plans', 'POST', plan);
+                },
+                
+                // 更新计划状态到服务器
+                updatePlanStatus(planId, data) {
+                    return this.realApiRequest(`/api/plans/${planId}`, 'PUT', data);
+                },
+                
+                // 实际API请求函数
+                realApiRequest(url, method, data = null) {
+                    // 创建请求配置
+                    const config = {
+                        method: method,
+                        url: url,
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    };
+                    
+                    // 如果有数据，添加到请求体
+                    if (data) {
+                        config.data = data;
+                    }
+                    
+                    // 发送请求
+                    return axios(config);
+                },
+                
+                // 提交计划
+                submitPlan() {
+                    this.$refs.planForm.validate((valid) => {
+                        if (valid) {
+                            const plan = {
+                                ...this.newPlan,
+                                id: Date.now().toString(), // 使用时间戳作为ID
+                                submitDate: this.formatDate(new Date()),
+                                status: 'pending',
+                                feedback: ''
+                            };
+                            
+                            // 显示加载状态
+                            this.loading = true;
+                            
+                            // 保存到服务器
+                            this.savePlanToServer({
+                                plan,
+                                totpToken: this.newPlan.totpToken
+                            })
+                                .then(response => {
+                                    // 添加到本地计划列表
+                                    this.plans.unshift(response.data);
+                                    
+                                    this.$message({
+                                        message: '计划提交成功，等待审批',
+                                        type: 'success'
+                                    });
+                                    
+                                    // 重置表单
+                                    this.resetForm();
+                                    
+                                    // 切换到历史记录标签
+                                    this.activeTab = 'history';
+                                })
+                                .catch(error => {
+                                    console.error('提交计划失败:', error);
+                                    this.$message.error('提交计划失败，请稍后重试');
+                                })
+                                .finally(() => {
+                                    this.loading = false;
+                                });
+                        } else {
+                            return false;
+                        }
+                    });
+                },
+                
+                // 重置表单
+                resetForm() {
+                    this.$refs.planForm.resetFields();
+                    this.newPlan = {
+                        id: null,
+                        submitDate: this.formatDate(new Date()),
+                        planDate: '',
+                        description: '',
+                        alternative: '',
+                        status: 'pending',
+                        feedback: '',
+                        totpToken: ''
+                    };
+                },
+                
+                // 查看计划详情
+                viewPlanDetails(plan) {
+                    this.selectedPlan = plan;
+                    this.detailDialogVisible = true;
+                },
+                
+                // 显示登录对话框
+                showLoginDialog() {
+                    this.loginDialogVisible = true;
+                    this.loginForm.totpToken = '';
+                },
+                
+                // 管理员登录
+                login() {
+                    this.$refs.loginForm.validate((valid) => {
+                        if (valid) {
+                            // 验证 TOTP
+                            this.realApiRequest('/api/admin/verify', 'POST', {
+                                totpToken: this.loginForm.totpToken
+                            })
+                            .then(response => {
+                                if (response.data.valid) {
+                                    this.currentView = 'admin';
+                                    this.loginDialogVisible = false;
+                                    this.$message({
+                                        message: '登录成功',
+                                        type: 'success'
+                                    });
+                                } else {
+                                    this.$message.error('验证码错误');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('登录失败:', error);
+                                this.$message.error('登录失败，请稍后重试');
+                            });
+                        } else {
+                            return false;
+                        }
+                    });
+                },
+                
+                // 准备审批计划
+                approvePlan(plan) {
+                    this.approvalAction = 'approve';
+                    this.approvalPlan = plan;
+                    this.approvalForm.feedback = '';
+                    this.approvalForm.totpToken = '';
+                    this.approvalDialogVisible = true;
+                },
+                
+                // 准备拒绝计划
+                rejectPlan(plan) {
+                    this.approvalAction = 'reject';
+                    this.approvalPlan = plan;
+                    this.approvalForm.feedback = '';
+                    this.approvalForm.totpToken = '';
+                    this.approvalDialogVisible = true;
+                },
+                
+                // 提交审批结果
+                submitApproval() {
+                    this.$refs.approvalForm.validate((valid) => {
+                        if (valid) {
+                            const status = this.approvalAction === 'approve' ? 'approved' : 'rejected';
+                            const feedback = this.approvalForm.feedback;
+                            
+                            // 显示加载状态
+                            this.loading = true;
+                            
+                            // 更新到服务器
+                            this.updatePlanStatus(this.approvalPlan.id, {
+                                status,
+                                feedback,
+                                totpToken: this.approvalForm.totpToken
+                            })
+                                .then(response => {
+                                    // 找到计划在数组中的索引
+                                    const index = this.plans.findIndex(p => p.id === this.approvalPlan.id);
+                                    if (index !== -1) {
+                                        // 更新本地计划状态和反馈
+                                        this.plans[index].status = status;
+                                        this.plans[index].feedback = feedback;
+                                        
+                                        this.$message({
+                                            message: this.approvalAction === 'approve' ? '已通过该计划' : '已拒绝该计划',
+                                            type: this.approvalAction === 'approve' ? 'success' : 'warning'
+                                        });
+                                        
+                                        this.approvalDialogVisible = false;
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('审批失败:', error);
+                                    this.$message.error('审批操作失败，请稍后重试');
+                                })
+                                .finally(() => {
+                                    this.loading = false;
+                                });
+                        } else {
+                            return false;
+                        }
+                    });
+                },
+                
+                // 返回按钮回调
+                goBack() {
+                    if (this.currentView === 'admin') {
+                        this.currentView = 'user';
+                    }
+                },
+                
+                // 刷新数据
+                refreshData() {
+                    this.$message({
+                        message: '正在刷新数据...',
+                        type: 'info'
+                    });
+                    this.fetchPlans();
+                },
+                
+                // 格式化本地日期
+                formatLocalDate(dateStr) {
+                    const date = new Date(dateStr);
+                    return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+                },
+                
+                // 格式化本地时间
+                formatLocalTime(timeStr) {
+                    return timeStr;
+                },
+                
+                // 获取时间线项目类型
+                getTimelineItemType(plan) {
+                    const planDate = new Date(plan.planDate);
+                    const today = new Date();
+                    
+                    if (planDate < today) {
+                        return 'danger';
+                    } else if (plan.status === 'approved') {
+                        return 'success';
+                    } else if (plan.status === 'rejected') {
+                        return 'danger';
+                    } else {
+                        return 'primary';
+                    }
+                },
+                
+                // 获取时间线项目颜色
+                getTimelineItemColor(plan) {
+                    const planDate = new Date(plan.planDate);
+                    const today = new Date();
+                    
+                    if (planDate < today) {
+                        return '#F56C6C';
+                    } else if (plan.status === 'approved') {
+                        return '#67C23A';
+                    } else if (plan.status === 'rejected') {
+                        return '#F56C6C';
+                    } else {
+                        return '#409EFF';
+                    }
+                },
+                
+                // 获取状态类型
+                getStatusType(status) {
+                    switch (status) {
+                        case 'approved':
+                            return 'success';
+                        case 'rejected':
+                            return 'danger';
+                        default:
+                            return 'info';
+                    }
+                },
+                
+                // 获取状态文本
+                getStatusText(status, plan) {
+                    const planDate = new Date(plan.planDate);
+                    const today = new Date();
+                    
+                    if (planDate < today) {
+                        return '已过期';
+                    }
+                    
+                    switch (status) {
+                        case 'approved':
+                            return '已通过';
+                        case 'rejected':
+                            return '已拒绝';
+                        default:
+                            return '审核中';
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

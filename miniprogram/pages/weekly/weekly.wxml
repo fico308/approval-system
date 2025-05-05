@@ -1,0 +1,28 @@
+<view class="container">
+  <view class="header">
+    <text class="title">本周计划</text>
+  </view>
+
+  <view class="plan-list" wx:if="{{plans.length > 0}}">
+    <view class="plan-card" wx:for="{{plans}}" wx:key="id" bindtap="viewPlanDetail" data-index="{{index}}">
+      <view class="plan-header">
+        <text class="plan-date">{{item.planDate}} {{item.weekday}}</text>
+      </view>
+      <view class="plan-description">
+        <text decode="{{true}}">{{item.description}}</text>
+      </view>
+      <view class="plan-alternative" wx:if="{{item.alternative}}">
+        <text class="alternative-label">备选方案：</text>
+        <text class="alternative-content" decode="{{true}}">{{item.alternative}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty" wx:elif="{{!loading}}">
+    <text>本周暂无已批准的计划</text>
+  </view>
+
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view> 

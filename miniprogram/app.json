@@ -1,0 +1,58 @@
+{
+  "pages": [
+    "pages/weekly/weekly",
+    "pages/timeline/timeline",
+    "pages/index/index",
+    "pages/history/history",
+    "pages/admin/admin"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#fff",
+    "navigationBarTitleText": "周末活动申请",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#1890ff",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/weekly/weekly",
+        "text": "本周计划",
+        "iconPath": "images/timeline.png",
+        "selectedIconPath": "images/timeline-active.png"
+      },
+      {
+        "pagePath": "pages/timeline/timeline",
+        "text": "本月计划",
+        "iconPath": "images/timeline.png",
+        "selectedIconPath": "images/timeline-active.png"
+      },
+      {
+        "pagePath": "pages/index/index",
+        "text": "提交计划",
+        "iconPath": "images/submit.png",
+        "selectedIconPath": "images/submit-active.png"
+      },
+      {
+        "pagePath": "pages/history/history",
+        "text": "历史记录",
+        "iconPath": "images/history.png",
+        "selectedIconPath": "images/history-active.png"
+      },
+      {
+        "pagePath": "pages/admin/admin",
+        "text": "管理员",
+        "iconPath": "images/admin.png",
+        "selectedIconPath": "images/admin-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark",
+  "usingComponents": {}
+} 

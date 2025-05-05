@@ -1,0 +1,71 @@
+<view class="container">
+  <view class="header">
+    <text class="title">周末计划申请</text>
+  </view>
+
+  <view class="warning" wx:if="{{isAfterThursday}}">
+    <text>已过周四，本周申请已截止</text>
+  </view>
+
+  <view class="form">
+    <view class="form-item">
+      <text class="label">计划日期</text>
+      <picker mode="date" value="{{newPlan.planDate}}" bindchange="bindDateChange">
+        <view class="picker {{newPlan.planDate ? '' : 'placeholder'}}">
+          {{newPlan.planDate || '请选择计划日期'}}
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="label">详细描述</text>
+      <view class="markdown-editor">
+        <textarea 
+          class="markdown-input"
+          value="{{newPlan.description}}"
+          placeholder="请详细描述您的周末计划"
+          bindinput="bindDescriptionInput"
+        />
+        <view class="preview-toggle" bindtap="togglePreview">
+          {{showPreview ? '隐藏预览' : '预览'}}
+        </view>
+        <view class="markdown-preview" wx:if="{{showPreview}}">
+          <rich-text nodes="{{newPlan.description}}"></rich-text>
+        </view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <text class="label">备选方案</text>
+      <view class="markdown-editor">
+        <textarea 
+          class="markdown-input"
+          value="{{newPlan.alternative}}"
+          placeholder="请提供备选方案（可选）"
+          bindinput="bindAlternativeInput"
+        />
+        <view class="preview-toggle" bindtap="toggleAlternativePreview">
+          {{showAlternativePreview ? '隐藏预览' : '预览'}}
+        </view>
+        <view class="markdown-preview" wx:if="{{showAlternativePreview}}">
+          <rich-text nodes="{{newPlan.alternative}}"></rich-text>
+        </view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <text class="label">验证码</text>
+      <input 
+        type="number"
+        maxlength="6"
+        value="{{newPlan.totpToken}}"
+        placeholder="验证码"
+        bindinput="bindTotpTokenInput"
+      />
+    </view>
+
+    <view class="form-actions">
+      <button type="primary" bindtap="submitPlan" disabled="{{isAfterThursday}}">提交申请</button>
+    </view>
+  </view>
+</view> 

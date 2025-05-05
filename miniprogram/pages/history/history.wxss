@@ -1,0 +1,112 @@
+.container {
+  padding: 20rpx;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 30rpx;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.plan-list {
+  padding: 0 20rpx;
+}
+
+.plan-card {
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.plan-date {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.plan-submit-time {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 16rpx;
+}
+
+.plan-status {
+  font-size: 24rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 4rpx;
+}
+
+.plan-status.pending {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.plan-status.approved {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+.plan-status.rejected {
+  background: #fff2f0;
+  color: #ff4d4f;
+}
+
+.plan-description {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 16rpx;
+  line-height: 1.5;
+}
+
+.plan-alternative {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 16rpx;
+  line-height: 1.5;
+}
+
+.alternative-label {
+  color: #999;
+}
+
+.plan-footer {
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.feedback-label {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.feedback-content {
+  font-size: 28rpx;
+  color: #666;
+  margin-left: 8rpx;
+}
+
+.empty {
+  text-align: center;
+  color: #999;
+  margin-top: 100rpx;
+}
+
+.loading {
+  text-align: center;
+  color: #999;
+  margin-top: 100rpx;
+} 

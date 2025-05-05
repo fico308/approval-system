@@ -1,0 +1,94 @@
+<view class="container">
+  <view class="header">
+    <text class="title">管理员审批</text>
+  </view>
+
+  <view class="login-dialog" wx:if="{{!isAdmin && showLoginDialog}}">
+    <view class="dialog-content">
+      <view class="dialog-title">管理员登录</view>
+      <view class="form-item">
+        <text class="label">验证码</text>
+        <input 
+          type="number"
+          maxlength="6"
+          value="{{totpToken}}"
+          placeholder="请输入 Google Authenticator 验证码"
+          bindinput="bindTotpTokenInput"
+        />
+      </view>
+      <view class="button-group">
+        <button class="cancel-btn" bindtap="hideLogin">取消</button>
+        <button class="confirm-btn" bindtap="login">确认</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="plan-list" wx:if="{{isAdmin}}">
+    <view class="plan-item" wx:for="{{plans}}" wx:key="id">
+      <view class="plan-header">
+        <view class="date-info">
+          <text class="date">{{item.planDate}}</text>
+          <text class="weekday">{{item.weekday}}</text>
+        </view>
+        <text class="status {{item.status}}">{{item.statusText}}</text>
+      </view>
+      
+      <view class="plan-content">
+        <view class="content-item">
+          <text class="label">计划内容</text>
+          <text class="text" decode="{{true}}">{{item.description}}</text>
+        </view>
+        
+        <view class="content-item" wx:if="{{item.alternative}}">
+          <text class="label">备选方案</text>
+          <text class="text" decode="{{true}}">{{item.alternative}}</text>
+        </view>
+
+        <view class="content-item">
+          <text class="label">审批意见</text>
+          <textarea 
+            class="feedback-input"
+            placeholder="请输入审批意见"
+            value="{{item.feedback}}"
+            data-id="{{item.id}}"
+            bindinput="bindFeedbackInput"
+          ></textarea>
+        </view>
+
+        <view class="content-item">
+          <text class="label">验证码</text>
+          <input 
+            type="number"
+            maxlength="6"
+            value="{{item.totpToken}}"
+            placeholder="请输入 Google Authenticator 验证码"
+            data-id="{{item.id}}"
+            bindinput="bindTotpTokenInput"
+          />
+        </view>
+      </view>
+
+      <view class="plan-footer">
+        <view class="footer-content">
+          <text class="submit-time">提交时间：{{item.submitDate}}</text>
+          <view class="action-group" wx:if="{{item.status === 'pending'}}">
+            <button class="reject-btn" bindtap="rejectPlan" data-id="{{item.id}}">拒绝</button>
+            <button class="approve-btn" bindtap="approvePlan" data-id="{{item.id}}">批准</button>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty" wx:if="{{isAdmin && !loading && plans.length === 0}}">
+    <text>暂无待审批计划</text>
+  </view>
+
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <view class="login-tip" wx:if="{{!isAdmin && !showLoginDialog}}">
+    <button class="login-btn" bindtap="showLogin">管理员登录</button>
+  </view>
+</view> 

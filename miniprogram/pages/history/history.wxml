@@ -1,0 +1,34 @@
+<view class="container">
+  <view class="header">
+    <text class="title">申请历史记录</text>
+  </view>
+
+  <view class="plan-list" wx:if="{{plans.length > 0}}">
+    <view class="plan-card" wx:for="{{plans}}" wx:key="id">
+      <view class="plan-header">
+        <text class="plan-date">计划日期：{{item.planDate}}</text>
+        <text class="plan-status {{item.status}}">{{item.statusText}}</text>
+      </view>
+      <view class="plan-submit-time">提交时间：{{item.submitDate}}</view>
+      <view class="plan-description">
+        <text decode="{{true}}">{{item.description}}</text>
+      </view>
+      <view class="plan-alternative" wx:if="{{item.alternative}}">
+        <text class="alternative-label">备选方案：</text>
+        <text class="alternative-content" decode="{{true}}">{{item.alternative}}</text>
+      </view>
+      <view class="plan-footer" wx:if="{{item.feedback}}">
+        <text class="feedback-label">反馈：</text>
+        <text class="feedback-content" decode="{{true}}">{{item.feedback}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty" wx:elif="{{!loading}}">
+    <text>暂无申请记录</text>
+  </view>
+
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view> 

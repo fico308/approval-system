@@ -1,0 +1,35 @@
+<view class="container">
+  <view class="header">
+    <text class="title">月度时间线</text>
+  </view>
+
+  <view class="timeline" wx:if="{{plans.length > 0}}">
+    <view class="month-group" wx:for="{{plans}}" wx:key="month">
+      <view class="month-header">
+        <text class="month-title">{{item.title}}</text>
+      </view>
+      <view class="month-plans">
+        <view class="plan-card" wx:for="{{item.plans}}" wx:for-item="plan" wx:key="id">
+          <view class="plan-header">
+            <text class="plan-date">{{plan.planDate}} {{plan.weekday}}</text>
+          </view>
+          <view class="plan-description">
+            <text decode="{{true}}">{{plan.description}}</text>
+          </view>
+          <view class="plan-alternative" wx:if="{{plan.alternative}}">
+            <text class="alternative-label">备选方案：</text>
+            <text class="alternative-content" decode="{{true}}">{{plan.alternative}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty" wx:elif="{{!loading}}">
+    <text>暂无已批准的申请记录</text>
+  </view>
+
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view> 

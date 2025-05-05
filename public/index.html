@@ -29,30 +29,50 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 10px;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 5px;
+            }
         }
         .header {
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             text-align: center;
         }
         .plan-form {
             background-color: #fff;
-            padding: 20px;
+            padding: 15px;
             border-radius: 4px;
             box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+        }
+        @media (max-width: 768px) {
+            .plan-form {
+                padding: 10px;
+            }
         }
         .plan-history {
             background-color: #fff;
-            padding: 20px;
+            padding: 15px;
             border-radius: 4px;
             box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
         }
+        @media (max-width: 768px) {
+            .plan-history {
+                padding: 10px;
+            }
+        }
         .admin-panel {
             background-color: #fff;
-            padding: 20px;
+            padding: 15px;
             border-radius: 4px;
             box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        }
+        @media (max-width: 768px) {
+            .admin-panel {
+                padding: 10px;
+            }
         }
         .plan-item {
             margin-bottom: 15px;
@@ -68,11 +88,20 @@
             font-weight: bold;
         }
         .login-form {
-            width: 350px;
-            margin: 100px auto;
+            width: 100%;
+            max-width: 350px;
+            margin: 50px auto;
         }
         .buttons-bar {
-            margin-top: 20px;
+            margin-top: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        @media (max-width: 768px) {
+            .buttons-bar {
+                justify-content: center;
+            }
         }
         .plan-card {
             height: 100%;
@@ -81,13 +110,55 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         .plan-card-content {
             color: #666;
         }
+        .markdown-editor {
+            position: relative;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        @media (max-width: 768px) {
+            .markdown-editor {
+                flex-direction: column;
+            }
+            .markdown-input,
+            .markdown-preview {
+                width: 100% !important;
+            }
+        }
+        .markdown-input {
+            flex: 1;
+            min-width: 300px;
+        }
+        .markdown-preview {
+            flex: 1;
+            min-width: 300px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            padding: 10px;
+            overflow-x: auto;
+        }
+        .preview-toggle {
+            position: absolute;
+            right: 0;
+            top: -30px;
+        }
+        @media (max-width: 768px) {
+            .preview-toggle {
+                position: static;
+                margin-top: 10px;
+                width: 100%;
+            }
+        }
         .markdown-content {
             padding: 10px;
             line-height: 1.6;
+            overflow-x: auto;
         }
         .markdown-content h1,
         .markdown-content h2,
@@ -98,9 +169,11 @@
             margin-top: 1em;
             margin-bottom: 0.5em;
             font-weight: 600;
+            word-wrap: break-word;
         }
         .markdown-content p {
             margin: 0.5em 0;
+            word-wrap: break-word;
         }
         .markdown-content ul,
         .markdown-content ol {
@@ -112,6 +185,7 @@
             padding: 0.2em 0.4em;
             border-radius: 3px;
             font-family: monospace;
+            word-break: break-all;
         }
         .markdown-content pre {
             background-color: #f5f7fa;
@@ -133,11 +207,14 @@
             border-collapse: collapse;
             width: 100%;
             margin: 0.5em 0;
+            display: block;
+            overflow-x: auto;
         }
         .markdown-content th,
         .markdown-content td {
             border: 1px solid #dcdfe6;
             padding: 0.5em;
+            min-width: 100px;
         }
         .markdown-content th {
             background-color: #f5f7fa;
@@ -149,14 +226,36 @@
         .markdown-content a {
             color: #409eff;
             text-decoration: none;
+            word-break: break-all;
         }
         .markdown-content a:hover {
             text-decoration: underline;
         }
-        .preview-toggle {
-            position: absolute;
-            right: 0;
-            top: -30px;
+        @media (max-width: 768px) {
+            .el-dialog {
+                width: 90% !important;
+                margin: 5vh auto !important;
+            }
+            .el-form-item__label {
+                float: none;
+                display: block;
+                text-align: left;
+                padding: 0 0 8px;
+            }
+            .el-form-item__content {
+                margin-left: 0 !important;
+            }
+            .el-date-editor.el-input {
+                width: 100% !important;
+            }
+            .el-tabs__nav {
+                display: flex;
+                flex-wrap: wrap;
+            }
+            .el-tabs__item {
+                flex: 1;
+                text-align: center;
+            }
         }
     </style>
 </head>
@@ -994,4 +1093,5 @@
         });
     </script>
 </body>
+</html>
 </html>

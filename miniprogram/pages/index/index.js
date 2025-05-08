@@ -21,7 +21,7 @@ Page({
     const today = new Date()
     // 周四是4，周五是5，周六是6，周日是0
     this.setData({
-      isAfterThursday: today.getDay() >= 4 || today.getDay() === 0
+      isAfterThursday: today.getDay() > 4 || today.getDay() === 0
     })
   },
 
